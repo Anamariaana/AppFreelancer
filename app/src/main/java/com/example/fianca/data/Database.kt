@@ -4,18 +4,28 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.sqlite.db.SupportSQLiteDatabase
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @Database(
-    entities = [QuestionEntity::class, AnswerOptionEntity::class],
-    version = 1,
+    entities = [
+        UserEntity::class,
+        CategoryEntity::class,
+        FreelancerCategoryEntity::class,
+        FreelancerProfileEntity::class,
+        ServiceRequestEntity::class,
+        ServiceInterestEntity::class,
+        ChatMessageEntity::class,
+        RatingEntity::class
+    ],
+    version = 2,
     exportSchema = false
 )
 abstract class FiancaDatabase : RoomDatabase() {
-    abstract fun quizDao(): QuizDao
+    abstract fun userDao(): UserDao
+    abstract fun categoryDao(): CategoryDao
+    abstract fun freelancerDao(): FreelancerDao
+    abstract fun requestsDao(): RequestsDao
+    abstract fun chatDao(): ChatDao
+    abstract fun ratingDao(): RatingDao
 
     companion object {
         @Volatile

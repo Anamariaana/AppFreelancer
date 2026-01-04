@@ -32,17 +32,19 @@ import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fianca.data.AnswerOptionEntity
 import com.example.fianca.data.FiancaDatabase
-import com.example.fianca.data.QuizRepository
+import com.example.fianca.data.FreelanceRepository
 import com.example.fianca.data.QuestionWithOptions
 import com.example.fianca.ui.theme.white100
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            RomanticQuizTheme {
-                QuizApp()
+            MaterialTheme {
+                FreelancerApp()
             }
         }
     }
@@ -65,6 +67,150 @@ fun RomanticQuizTheme(content: @Composable () -> Unit) {
     )
 }
 
+class AuthViewModel(private val repository: FreelanceRepository) : ViewModel() {
+    private val _email = MutableStateFlow("")
+    val email: StateFlow<String> = _email
+    private val _password = MutableStateFlow("")
+    val password: StateFlow<String> = _password
+    private val _name = MutableStateFlow("")
+    val name: StateFlow<String> = _name
+    private val _authResult = MutableStateFlow<Boolean?>(null)
+    val authResult: StateFlow<Boolean?> = _authResult
+
+    fun setEmail(v: String) { _email.value = v }
+    fun setPassword(v: String) { _password.value = v }
+    fun setName(v: String) { _name.value = v }
+    fun resetAuthResult() { _authResult.value = null }
+
+    fun login() {
+        viewModelScope.launch {
+            val u = repository.login(_email.value, _password.value)
+            _authResult.value = u != null
+        }
+    }
+
+    fun register(role: String = "CLIENT") {
+        viewModelScope.launch {
+            val u = repository.registerUser(_name.value, _email.value, _password.value, role)
+            _authResult.value = u != null
+        }
+    }
+}
+
+@Composable
+fun FreelancerApp() {
+    val navController = rememberNavController()
+    val context = LocalContext.current
+    val repository = remember(context) { FreelanceRepository(FiancaDatabase.getInstance(context)) }
+    val authViewModel: AuthViewModel = viewModel(factory = object : ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            return AuthViewModel(repository) as T
+        }
+    })
+
+    NavHost(navController = navController, startDestination = "auth/login") {
+        composable("auth/login") {
+            LoginScreenAuth(
+                viewModel = authViewModel,
+                onLoginSuccess = { navController.navigate("select/profile") },
+                onGoRegister = { navController.navigate("auth/register") }
+            )
+        }
+        composable("auth/register") {
+            RegisterScreenAuth(
+                viewModel = authViewModel,
+                onRegistered = { navController.navigate("auth/login") }
+            )
+        }
+        composable("select/profile") {
+            SelectProfileScreen(
+                onClient = { navController.navigate("client/home") },
+                onFreelancer = { navController.navigate("freelancer/home") },
+                onAdmin = { navController.navigate("admin/home") }
+            )
+        }
+        composable("client/home") { ClientHomeScreen() }
+        composable("freelancer/home") { FreelancerHomeScreen() }
+        composable("admin/home") { AdminHomeScreen() }
+    }
+}
+
+@Composable
+fun LoginScreenAuth(viewModel: AuthViewModel, onLoginSuccess: () -> Unit, onGoRegister: () -> Unit) {
+    val email by viewModel.email.collectAsState()
+    val password by viewModel.password.collectAsState()
+    val authResult by viewModel.authResult.collectAsState()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        OutlinedTextField(value = email, onValueChange = { viewModel.setEmail(it) }, label = { Text("Email") }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = password, onValueChange = { viewModel.setPassword(it) }, label = { Text("Senha") }, modifier = Modifier.fillMaxWidth())
+        Button(onClick = { viewModel.login() }, modifier = Modifier.fillMaxWidth()) { Text("Entrar") }
+        Button(onClick = onGoRegister, modifier = Modifier.fillMaxWidth()) { Text("Cadastrar") }
+    }
+    if (authResult == true) {
+        onLoginSuccess()
+        viewModel.resetAuthResult()
+    }
+}
+
+@Composable
+fun RegisterScreenAuth(viewModel: AuthViewModel, onRegistered: () -> Unit) {
+    val name by viewModel.name.collectAsState()
+    val email by viewModel.email.collectAsState()
+    val password by viewModel.password.collectAsState()
+    val authResult by viewModel.authResult.collectAsState()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        OutlinedTextField(value = name, onValueChange = { viewModel.setName(it) }, label = { Text("Nome") }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = email, onValueChange = { viewModel.setEmail(it) }, label = { Text("Email") }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = password, onValueChange = { viewModel.setPassword(it) }, label = { Text("Senha") }, modifier = Modifier.fillMaxWidth())
+        Button(onClick = { viewModel.register() }, modifier = Modifier.fillMaxWidth()) { Text("Cadastrar") }
+        Button(onClick = onRegistered, modifier = Modifier.fillMaxWidth()) { Text("Voltar ao Login") }
+    }
+    if (authResult == true) {
+        onRegistered()
+        viewModel.resetAuthResult()
+    }
+}
+
+@Composable
+fun SelectProfileScreen(onClient: () -> Unit, onFreelancer: () -> Unit, onAdmin: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Button(onClick = onClient, modifier = Modifier.fillMaxWidth()) { Text("Cliente") }
+        Button(onClick = onFreelancer, modifier = Modifier.fillMaxWidth()) { Text("Freelancer") }
+        Button(onClick = onAdmin, modifier = Modifier.fillMaxWidth()) { Text("Admin") }
+    }
+}
+
+@Composable
+fun ClientHomeScreen() {
+    Column(modifier = Modifier.fillMaxSize().padding(24.dp)) { Text("Home do Cliente") }
+}
+
+@Composable
+fun FreelancerHomeScreen() {
+    Column(modifier = Modifier.fillMaxSize().padding(24.dp)) { Text("Home do Freelancer") }
+}
+
+@Composable
+fun AdminHomeScreen() {
+    Column(modifier = Modifier.fillMaxSize().padding(24.dp)) { Text("Home do Admin") }
+}
 class QuizViewModel(private val repository: QuizRepository) : ViewModel() {
     private val _currentQuestionIndex = mutableStateOf(0)
     val currentQuestionIndex: State<Int> = _currentQuestionIndex
