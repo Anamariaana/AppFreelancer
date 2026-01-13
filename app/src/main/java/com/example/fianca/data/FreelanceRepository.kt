@@ -52,6 +52,8 @@ class FreelanceRepository(private val db: FiancaDatabase) {
         val cats = freelancerDao.getCategories(userId).map { it.id }
         if (cats.isEmpty()) emptyList() else requestsDao.getOpenRequestsForCategories(cats)
     }
+    suspend fun getFreelancerWorks(freelancerId: Int) = withContext(Dispatchers.IO) { requestsDao.getRequestsByFreelancer(freelancerId) }
+    suspend fun getUsersByIds(ids: List<Int>) = withContext(Dispatchers.IO) { userDao.getUsersByIds(ids) }
 
     suspend fun sendMessage(message: ChatMessageEntity) = withContext(Dispatchers.IO) { chatDao.send(message) }
     suspend fun getConversation(requestId: Int) = withContext(Dispatchers.IO) { chatDao.getConversation(requestId) }

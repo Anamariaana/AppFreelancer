@@ -25,6 +25,9 @@ interface UserDao {
 
     @Query("SELECT * FROM users")
     suspend fun getAll(): List<UserEntity>
+
+    @Query("SELECT * FROM users WHERE id IN (:ids)")
+    suspend fun getUsersByIds(ids: List<Int>): List<UserEntity>
 }
 
 @Dao
@@ -82,6 +85,9 @@ interface RequestsDao {
 
     @Query("SELECT sr.* FROM service_requests sr WHERE sr.categoryId IN (:categoryIds) AND sr.status = 'Aberto' ORDER BY sr.id DESC")
     suspend fun getOpenRequestsForCategories(categoryIds: List<Int>): List<ServiceRequestEntity>
+
+    @Query("SELECT * FROM service_requests WHERE selectedFreelancerId = :freelancerId ORDER BY dateTime DESC")
+    suspend fun getRequestsByFreelancer(freelancerId: Int): List<ServiceRequestEntity>
 }
 
 @Dao
@@ -104,4 +110,3 @@ interface RatingDao {
     @Query("SELECT * FROM ratings WHERE toUserId = :userId ORDER BY id DESC")
     suspend fun getAllForUser(userId: Int): List<RatingEntity>
 }
-
