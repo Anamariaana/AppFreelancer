@@ -65,6 +65,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -78,6 +79,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.FirebaseApp
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.ktx.Firebase
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -99,10 +104,12 @@ import com.example.fianca.ui.theme.white100
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        FirebaseApp.initializeApp(this)
         setContent {
             FreelancerUI {
                 FreelancerApp()
@@ -286,6 +293,7 @@ data class FreelancerDisplayInfo(
 )
 
 object Routes {
+    const val Splash = "splash"
     const val Login = "auth/login"
     const val Register = "auth/register"
     const val ClientHome = "client/home"
@@ -303,8 +311,21 @@ fun FreelancerApp() {
             return AuthViewModel(repository) as T
         }
     })
+    LaunchedEffect(Unit) {
+        Firebase.analytics.logEvent(FirebaseAnalytics.Event.APP_OPEN, null)
+    }
 
-    NavHost(navController = navController, startDestination = Routes.Login) {
+    NavHost(navController = navController, startDestination = Routes.Splash) {
+        composable(Routes.Splash) {
+            SplashScreen(
+                onFinished = {
+                    navController.navigate(Routes.Login) {
+                        popUpTo(Routes.Splash) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
         composable(Routes.Login) {
             LoginScreenAuth(
                 viewModel = authViewModel,
@@ -372,6 +393,31 @@ fun FreelancerApp() {
             )
         }
         composable(Routes.AdminHome) { AdminHomeScreen() }
+    }
+}
+
+@Composable
+fun SplashScreen(onFinished: () -> Unit) {
+    LaunchedEffect(Unit) {
+        delay(3000)
+        onFinished()
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(WineSecondary),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = "Biscato",
+                fontSize = 36.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            CircularProgressIndicator(color = Color.White)
+        }
     }
 }
 
@@ -1059,7 +1105,8 @@ fun FreelancerServicesContent(viewModel: FreelancerViewModel) {
                             Text("Ver Detalhes")
                         }
                     }
-                }z
+                }
+            
             }
         }
     }
