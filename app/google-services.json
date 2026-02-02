@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "447400728143",
+    "project_id": "frelancer-53045",
+    "storage_bucket": "frelancer-53045.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:447400728143:android:639a3c9a9347bf45b0fc3a",
+        "android_client_info": {
+          "package_name": "com.example.fianca"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBoxv0ve0EHUiKfQC-VhB2tiFgKn-P4FeM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

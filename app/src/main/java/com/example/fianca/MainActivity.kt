@@ -81,8 +81,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.ktx.Firebase
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -114,6 +112,7 @@ class MainActivity : ComponentActivity() {
             FreelancerUI {
                 FreelancerApp()
             }
+
         }
     }
 }
@@ -312,7 +311,7 @@ fun FreelancerApp() {
         }
     })
     LaunchedEffect(Unit) {
-        Firebase.analytics.logEvent(FirebaseAnalytics.Event.APP_OPEN, null)
+        FirebaseAnalytics.getInstance(context).logEvent(FirebaseAnalytics.Event.APP_OPEN, null)
     }
 
     NavHost(navController = navController, startDestination = Routes.Splash) {

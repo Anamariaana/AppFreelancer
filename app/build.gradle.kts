@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("org.jetbrains.kotlin.kapt")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -67,4 +68,6 @@ dependencies {
 
     // Icons
     implementation("androidx.compose.material:material-icons-extended:1.6.1")
+
+    implementation(platform("com.google.firebase:firebase-bom:34.8.0"))
 }
